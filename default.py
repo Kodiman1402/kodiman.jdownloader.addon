@@ -1,4 +1,3 @@
-# Hauptdatei des Addons
 import xbmcplugin
 import xbmcgui
 import xbmcaddon
@@ -32,14 +31,14 @@ def add_download():
             "links": link,
             "overwritePackagizerRules": True
         }])
-        xbmcgui.Dialog().ok("Erfolg", "Download-Link wurde erfolgreich an jDownloader gesendet.")
+        xbmcgui.Dialog().ok("Erfolg", "Download-Link wurde an jDownloader gesendet.")
     except Exception as e:
         xbmcgui.Dialog().ok("Fehler", str(e))
 
 def show_status():
     try:
         device = connect_to_jd()
-        downloads = device.downloads.query_links([])  # alle aktiven Downloads
+        downloads = device.downloads.query_links([])
         if not downloads:
             xbmcgui.Dialog().ok("Status", "Keine aktiven Downloads gefunden.")
             return
@@ -56,7 +55,7 @@ def show_status():
                 ("Download stoppen", f"RunPlugin({sys.argv[0]}?action=stop&uuid={uuid})"),
                 ("Download löschen", f"RunPlugin({sys.argv[0]}?action=delete&uuid={uuid})")
             ])
-            xbmcplugin.addDirectoryItem(handle, sys.argv[0]+f"?action=nop", li, False)
+            xbmcplugin.addDirectoryItem(handle, sys.argv[0]+"?action=nop", li, False)
 
         xbmcplugin.endOfDirectory(handle)
 
