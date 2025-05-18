@@ -23,6 +23,5 @@ Ein Kodi-Addon zur Integration von [jDownloader](https://jdownloader.org/) über
 
 MIT License – siehe [LICENSE](LICENSE).
 
-## Screenshots
-
-*(Platz für Screenshots)*
+## Telegram
+- https://server.himself.synology.me/kodi/kodiman/telegram_gruppe.html
