@@ -1,5 +1,5 @@
 <settings>
     <category label="Verbindung"/>
-    <setting id="email" type="text" label="My JDownloader E-Mail" default=""/>
-    <setting id="password" type="text" label="Passwort" option="hidden" default=""/>
+    <setting id="email" type="text" label="MyJDownloader E-Mail-Adresse" default=""/>
+    <setting id="password" type="text" label="MyJDownloader Passwort" option="hidden" default=""/>
 </settings>
