@@ -48,7 +48,9 @@ def show_status():
             name = dl.get("name", "Unbenannt")
             status = dl.get("status", "Unbekannt")
             uuid = dl.get("uuid")
-            progress = int((dl.get("bytesLoaded", 0) / max(dl.get("bytesTotal", 1), 1)) * 100)
+            loaded = dl.get("bytesLoaded", 0)
+            total = dl.get("bytesTotal", 0)
+            progress = int((loaded / total) * 100) if total > 0 else 0
             label = f"{name} - {progress}% - {status}"
             li = xbmcgui.ListItem(label)
             li.addContextMenuItems([
