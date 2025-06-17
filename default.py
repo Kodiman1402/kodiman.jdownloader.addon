@@ -25,7 +25,7 @@ def add_download():
         return
     try:
         device = connect_to_jd()
-        device.linkgrabberv2.add_links([{
+        device.linkgrabber.add_links([{
             "autostart": True,
             "packageName": "Kodi-Download",
             "links": link,
@@ -38,7 +38,7 @@ def add_download():
 def show_status():
     try:
         device = connect_to_jd()
-        downloads = device.downloads.query_links([])
+        downloads = device.downloads.query_links()
         if not downloads:
             xbmcgui.Dialog().ok("Status", "Keine aktiven Downloads gefunden.")
             return
@@ -48,9 +48,10 @@ def show_status():
             name = dl.get("name", "Unbenannt")
             status = dl.get("status", "Unbekannt")
             uuid = dl.get("uuid")
-            progress = int((dl.get("bytesLoaded", 0) / max(dl.get("bytesTotal", 1), 1)) * 100)
-            label = f"{name} - {progress}% - {status}"
-            li = xbmcgui.ListItem(label)
+            loaded = dl.get("bytesLoaded", 0)
+            total = dl.get("bytesTotal", 0)
+            progress = int(min(loaded / total, 1.0) * 100) if total > 0 else 0
+            li = xbmcgui.ListItem(name, label2=f"{progress}% - {status}")
             li.addContextMenuItems([
                 ("Download stoppen", f"RunPlugin({sys.argv[0]}?action=stop&uuid={uuid})"),
                 ("Download löschen", f"RunPlugin({sys.argv[0]}?action=delete&uuid={uuid})")
@@ -65,7 +66,7 @@ def show_status():
 def stop_download(uuid):
     try:
         device = connect_to_jd()
-        device.downloads.pause_links([uuid])
+        device.downloads.set_enabled(False, [uuid], [])
         xbmcgui.Dialog().ok("Aktion", "Download wurde gestoppt.")
     except Exception as e:
         xbmcgui.Dialog().ok("Fehler", str(e))
@@ -73,7 +74,7 @@ def stop_download(uuid):
 def delete_download(uuid):
     try:
         device = connect_to_jd()
-        device.downloads.delete_links([uuid], True)
+        device.downloads.remove_links([uuid], [])
         xbmcgui.Dialog().ok("Aktion", "Download wurde gelöscht.")
     except Exception as e:
         xbmcgui.Dialog().ok("Fehler", str(e))
