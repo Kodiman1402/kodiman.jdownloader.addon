@@ -1,4 +1,4 @@
-# Kodiman jDownloader Addon / APLHA
+# Kodiman jDownloader Addon / ALPHA
 
 Ein Kodi-Addon zur Integration von [jDownloader](https://jdownloader.org/) über die MyJDownloader-API.
 
