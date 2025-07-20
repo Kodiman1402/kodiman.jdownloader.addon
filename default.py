@@ -1,8 +1,11 @@
-import xbmcplugin
-import xbmcgui
-import xbmcaddon
+"""Kodi jDownloader Addon entry point."""
+
 import sys
 import urllib.parse
+
+import xbmcaddon  # pylint: disable=import-error
+import xbmcgui  # pylint: disable=import-error
+import xbmcplugin  # pylint: disable=import-error
 import myjdapi
 
 ADDON = xbmcaddon.Addon()
@@ -10,33 +13,42 @@ EMAIL = ADDON.getSetting("email")
 PASSWORD = ADDON.getSetting("password")
 
 def connect_to_jd():
+    """Establish a connection to the first available jDownloader device."""
     jd = myjdapi.Myjdapi()
     jd.set_app_key("KodiAddon")
     jd.connect(EMAIL, PASSWORD)
     jd.update_devices()
     devices = jd.list_devices()
     if not devices:
-        raise Exception("Kein jDownloader-Gerät gefunden.")
+        raise RuntimeError("Kein jDownloader-Gerät gefunden.")
     return jd.get_device(devices[0]["name"])
 
 def add_download():
-    link = xbmcgui.Dialog().input("Download-Link eingeben", type=xbmcgui.INPUT_ALPHANUM)
+    """Prompt for a link and send it to jDownloader."""
+    link = xbmcgui.Dialog().input(
+        "Download-Link eingeben",
+        type=xbmcgui.INPUT_ALPHANUM,
+    )
     if not link:
         return
-    try:
+    try:  # pylint: disable=broad-except
         device = connect_to_jd()
-        device.linkgrabber.add_links([{
-            "autostart": True,
-            "packageName": "Kodi-Download",
-            "links": link,
-            "overwritePackagizerRules": True
-        }])
-        xbmcgui.Dialog().ok("Erfolg", "Download-Link wurde an jDownloader gesendet.")
-    except Exception as e:
-        xbmcgui.Dialog().ok("Fehler", str(e))
-
+        device.linkgrabber.add_links([
+            {
+                "autostart": True,
+                "packageName": "Kodi-Download",
+                "links": link,
+                "overwritePackagizerRules": True,
+            }
+        ])
+        xbmcgui.Dialog().ok(
+            "Erfolg", "Download-Link wurde an jDownloader gesendet."
+        )
+    except Exception as err:  # pylint: disable=broad-except
+        xbmcgui.Dialog().ok("Fehler", str(err))
 def show_status():
-    try:
+    """Display the list of active downloads."""
+    try:  # pylint: disable=broad-except
         device = connect_to_jd()
         downloads = device.downloads.query_links()
         if not downloads:
@@ -55,32 +67,31 @@ def show_status():
             li = xbmcgui.ListItem(label)
             li.addContextMenuItems([
                 ("Download stoppen", f"RunPlugin({sys.argv[0]}?action=stop&uuid={uuid})"),
-                ("Download löschen", f"RunPlugin({sys.argv[0]}?action=delete&uuid={uuid})")
+                ("Download löschen", f"RunPlugin({sys.argv[0]}?action=delete&uuid={uuid})"),
             ])
-            xbmcplugin.addDirectoryItem(handle, sys.argv[0]+"?action=nop", li, False)
+            xbmcplugin.addDirectoryItem(handle, sys.argv[0] + "?action=nop", li, False)
 
         xbmcplugin.endOfDirectory(handle)
-
-    except Exception as e:
-        xbmcgui.Dialog().ok("Fehler", str(e))
-
+    except Exception as err:  # pylint: disable=broad-except
+        xbmcgui.Dialog().ok("Fehler", str(err))
 def stop_download(uuid):
-    try:
+    """Stop a download by UUID."""
+    try:  # pylint: disable=broad-except
         device = connect_to_jd()
         device.downloads.set_enabled(False, [uuid], [])
         xbmcgui.Dialog().ok("Aktion", "Download wurde gestoppt.")
-    except Exception as e:
-        xbmcgui.Dialog().ok("Fehler", str(e))
-
+    except Exception as err:  # pylint: disable=broad-except
+        xbmcgui.Dialog().ok("Fehler", str(err))
 def delete_download(uuid):
-    try:
+    """Remove a download by UUID."""
+    try:  # pylint: disable=broad-except
         device = connect_to_jd()
         device.downloads.remove_links([uuid], [])
         xbmcgui.Dialog().ok("Aktion", "Download wurde gelöscht.")
-    except Exception as e:
-        xbmcgui.Dialog().ok("Fehler", str(e))
-
+    except Exception as err:  # pylint: disable=broad-except
+        xbmcgui.Dialog().ok("Fehler", str(err))
 def main():
+    """Addon entry point."""
     handle = int(sys.argv[1])
     args = urllib.parse.parse_qs(sys.argv[2][1:])
     action = args.get("action", [None])[0]
@@ -97,8 +108,18 @@ def main():
         xbmcplugin.setPluginCategory(handle, "jDownloader")
         xbmcplugin.setContent(handle, "files")
 
-        xbmcplugin.addDirectoryItem(handle, url=sys.argv[0]+"?action=add", listitem=xbmcgui.ListItem("Neuen Download hinzufügen"), isFolder=False)
-        xbmcplugin.addDirectoryItem(handle, url=sys.argv[0]+"?action=status", listitem=xbmcgui.ListItem("Download-Status anzeigen"), isFolder=True)
+        xbmcplugin.addDirectoryItem(
+            handle,
+            url=sys.argv[0] + "?action=add",
+            listitem=xbmcgui.ListItem("Neuen Download hinzufügen"),
+            isFolder=False,
+        )
+        xbmcplugin.addDirectoryItem(
+            handle,
+            url=sys.argv[0] + "?action=status",
+            listitem=xbmcgui.ListItem("Download-Status anzeigen"),
+            isFolder=True,
+        )
 
         xbmcplugin.endOfDirectory(handle)
 
