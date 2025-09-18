@@ -9,14 +9,37 @@ import xbmcplugin  # pylint: disable=import-error
 import myjdapi
 
 ADDON = xbmcaddon.Addon()
-EMAIL = ADDON.getSetting("email")
-PASSWORD = ADDON.getSetting("password")
+
+
+def _get_credentials():
+    """Return the configured login credentials.
+
+    Raises a RuntimeError with a translated message if the credentials are
+    missing so the caller can display the error in a dialog.
+    """
+
+    email = ADDON.getSetting("email")
+    password = ADDON.getSetting("password")
+    if not email or not password:
+        raise RuntimeError(
+            "Bitte E-Mail-Adresse und Passwort in den Addon-Einstellungen hinterlegen."
+        )
+    return email, password
+
+
+def _build_url(base_url, **query):
+    """Create a plugin URL including the provided query arguments."""
+
+    if not query:
+        return base_url
+    return base_url + "?" + urllib.parse.urlencode(query)
 
 def connect_to_jd():
     """Establish a connection to the first available jDownloader device."""
     jd = myjdapi.Myjdapi()
     jd.set_app_key("KodiAddon")
-    jd.connect(EMAIL, PASSWORD)
+    email, password = _get_credentials()
+    jd.connect(email, password)
     jd.update_devices()
     devices = jd.list_devices()
     if not devices:
@@ -56,20 +79,32 @@ def show_status():
             return
 
         handle = int(sys.argv[1])
+        base_url = sys.argv[0]
         for dl in downloads:
             name = dl.get("name", "Unbenannt")
             status = dl.get("status", "Unbekannt")
             uuid = dl.get("uuid")
             loaded = dl.get("bytesLoaded", 0)
             total = dl.get("bytesTotal", 0)
-            progress = int(min(loaded / total, 1.0) * 100) if total > 0 else 0
+            try:
+                progress = int(min(float(loaded) / float(total), 1.0) * 100)
+            except (TypeError, ZeroDivisionError):
+                progress = 0
             label = f"{name} - {progress}% - {status}"
             li = xbmcgui.ListItem(label)
-            li.addContextMenuItems([
-                ("Download stoppen", f"RunPlugin({sys.argv[0]}?action=stop&uuid={uuid})"),
-                ("Download löschen", f"RunPlugin({sys.argv[0]}?action=delete&uuid={uuid})"),
-            ])
-            xbmcplugin.addDirectoryItem(handle, sys.argv[0] + "?action=nop", li, False)
+            if uuid:
+                stop_url = _build_url(base_url, action="stop", uuid=uuid)
+                delete_url = _build_url(base_url, action="delete", uuid=uuid)
+                li.addContextMenuItems([
+                    ("Download stoppen", f"RunPlugin({stop_url})"),
+                    ("Download löschen", f"RunPlugin({delete_url})"),
+                ])
+            xbmcplugin.addDirectoryItem(
+                handle,
+                _build_url(base_url, action="nop"),
+                li,
+                False,
+            )
 
         xbmcplugin.endOfDirectory(handle)
     except Exception as err:  # pylint: disable=broad-except
@@ -104,19 +139,21 @@ def main():
         stop_download(args.get("uuid", [""])[0])
     elif action == "delete":
         delete_download(args.get("uuid", [""])[0])
+    elif action == "nop":
+        return
     else:
         xbmcplugin.setPluginCategory(handle, "jDownloader")
         xbmcplugin.setContent(handle, "files")
 
         xbmcplugin.addDirectoryItem(
             handle,
-            url=sys.argv[0] + "?action=add",
+            url=_build_url(sys.argv[0], action="add"),
             listitem=xbmcgui.ListItem("Neuen Download hinzufügen"),
             isFolder=False,
         )
         xbmcplugin.addDirectoryItem(
             handle,
-            url=sys.argv[0] + "?action=status",
+            url=_build_url(sys.argv[0], action="status"),
             listitem=xbmcgui.ListItem("Download-Status anzeigen"),
             isFolder=True,
         )
