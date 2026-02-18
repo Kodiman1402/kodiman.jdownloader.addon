@@ -1,5 +1,12 @@
-<settings>
-    <category label="Verbindung"/>
-    <setting id="email" type="text" label="MyJDownloader E-Mail-Adresse" default=""/>
-    <setting id="password" type="text" label="MyJDownloader Passwort" option="hidden" default=""/>
+<?xml version="1.0" encoding="utf-8"?>
+<settings version="1">
+    <section id="plugin.program.kodiman.jdownloader">
+        <category id="general" label="Verbindung" help="">
+            <group id="1" label="MyJDownloader Zugangsdaten">
+                <setting id="email" type="string" label="E-Mail-Adresse" help="Die E-Mail deines MyJDownloader Kontos"/>
+                <setting id="password" type="string" label="Passwort" option="hidden" help="Dein Passwort"/>
+                <setting id="device_name" type="string" label="Gerätename (Optional)" help="Falls leer, wird das erste gefundene Gerät genommen."/>
+            </group>
+        </category>
+    </section>
 </settings>
