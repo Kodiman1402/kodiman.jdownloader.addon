@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.program.kodiman.jdownloader" version="0.1.10" name="kodiman.jdownloader.addon" provider-name="Kodiman Himself">
+<addon id="plugin.program.kodiman.jdownloader" version="4.0.0" name="Kodiman jDownloader" provider-name="Kodiman Himself">
     <requires>
         <import addon="xbmc.python" version="3.0.0"/>
     </requires>
-    <extension point="xbmc.python.pluginsource" library="default.py"/>
+    <extension point="xbmc.python.pluginsource" library="default.py">
+        <provides>executable</provides>
+    </extension>
     <extension point="xbmc.addon.metadata">
         <summary lang="de">Steuere jDownloader über Kodi</summary>
-        <description lang="de">Mit diesem Addon kannst du neue Downloads hinzufügen, den Status anzeigen sowie Downloads stoppen oder löschen.</description>
+        <description lang="de">Mit diesem Addon kannst du neue Downloads hinzufügen, den Status anzeigen sowie Downloads stoppen oder löschen. Benötigt myjdapi.</description>
         <platform>all</platform>
+        <assets>
+            <icon>resources/icon.png</icon>
+        </assets>
     </extension>
 </addon>
